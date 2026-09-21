@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.graphics.Bitmap
 import android.service.voice.VoiceInteractionSession
 import android.view.View
+import io.github.mangi.eta.core.AndroidReceiverCompat
 
 /**
  * 系统数字助理的入口桥接。
@@ -30,10 +31,10 @@ internal class EtaVoiceInteractionSession(context: Context) : VoiceInteractionSe
     override fun onCreate() {
         super.onCreate()
         setUiEnabled(false)
-        context.registerReceiver(
-            controlReceiver,
-            IntentFilter(ACTION_HIDE_FOR_FOREGROUND_OPERATION),
-            Context.RECEIVER_NOT_EXPORTED,
+        AndroidReceiverCompat.registerNotExported(
+            context = context,
+            receiver = controlReceiver,
+            filter = IntentFilter(ACTION_HIDE_FOR_FOREGROUND_OPERATION),
         )
     }
 

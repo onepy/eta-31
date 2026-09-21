@@ -29,7 +29,9 @@ android {
 
     defaultConfig {
         applicationId = "io.github.mangi.eta"
-        minSdk = 34
+        // HarmonyOS Android containers commonly expose API 31. Keep the APK
+        // installable there; newer APIs are guarded at runtime in the source.
+        minSdk = 31
         targetSdk = 36
         // versionCode 规则：yyyyMMdd + 两位当日序号（01 起），发版时随 versionName 一起手动递增。
         versionCode = 2026092301

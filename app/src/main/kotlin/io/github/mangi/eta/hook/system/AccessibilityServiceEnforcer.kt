@@ -16,6 +16,7 @@ import android.os.SystemClock
 import android.os.UserManager
 import android.provider.Settings
 import io.github.mangi.eta.agent.accessibility.AccessibilityProtectionProtocol
+import io.github.mangi.eta.core.AndroidReceiverCompat
 import io.github.mangi.eta.core.ModuleLogger
 import io.github.mangi.eta.core.safeLogType
 import java.util.concurrent.atomic.AtomicBoolean
@@ -144,15 +145,15 @@ internal class AccessibilityServiceEnforcer(
                 controlReceiver = it
             }
             try {
-                context.registerReceiver(
-                    receiver,
-                    IntentFilter().apply {
+                AndroidReceiverCompat.registerExported(
+                    context = context,
+                    receiver = receiver,
+                    filter = IntentFilter().apply {
                         addAction(AccessibilityProtectionProtocol.ACTION_SET)
                         addAction(AccessibilityProtectionProtocol.ACTION_RECOVER)
                     },
-                    AccessibilityProtectionProtocol.PERMISSION,
-                    handler,
-                    Context.RECEIVER_EXPORTED,
+                    permission = AccessibilityProtectionProtocol.PERMISSION,
+                    handler = handler,
                 )
                 controlReceiverRegistered = true
             } catch (failure: RuntimeException) {
@@ -192,17 +193,16 @@ internal class AccessibilityServiceEnforcer(
                 }
             }.also { packageReceiver = it }
             try {
-                context.registerReceiver(
-                    receiver,
-                    IntentFilter().apply {
+                AndroidReceiverCompat.registerNotExported(
+                    context = context,
+                    receiver = receiver,
+                    filter = IntentFilter().apply {
                         addAction(Intent.ACTION_PACKAGE_ADDED)
                         addAction(Intent.ACTION_PACKAGE_CHANGED)
                         addAction(Intent.ACTION_PACKAGE_REPLACED)
                         addDataScheme("package")
                     },
-                    null,
-                    handler,
-                    Context.RECEIVER_NOT_EXPORTED,
+                    handler = handler,
                 )
                 packageReceiverRegistered = true
             } catch (failure: RuntimeException) {
@@ -226,18 +226,17 @@ internal class AccessibilityServiceEnforcer(
                 }
             }.also { lifecycleReceiver = it }
             try {
-                context.registerReceiver(
-                    receiver,
-                    IntentFilter().apply {
+                AndroidReceiverCompat.registerNotExported(
+                    context = context,
+                    receiver = receiver,
+                    filter = IntentFilter().apply {
                         addAction(Intent.ACTION_LOCKED_BOOT_COMPLETED)
                         addAction(Intent.ACTION_BOOT_COMPLETED)
                         addAction(Intent.ACTION_USER_UNLOCKED)
                         // 回到解锁态时确认一次真实连接，稳定期间不轮询。
                         addAction(Intent.ACTION_USER_PRESENT)
                     },
-                    null,
-                    handler,
-                    Context.RECEIVER_NOT_EXPORTED,
+                    handler = handler,
                 )
                 lifecycleReceiverRegistered = true
             } catch (failure: RuntimeException) {
