@@ -47,6 +47,9 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import org.json.JSONObject
 
+private fun AccessibilityNodeInfo.compatUniqueId(): String =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) uniqueId.orEmpty() else ""
+
 class AgentAccessibilityService : AccessibilityService() {
 
     private data class ScreenshotWindow(
@@ -1363,9 +1366,6 @@ class AgentAccessibilityService : AccessibilityService() {
 
     private fun AccessibilityNodeInfo.supportedActionIds(): Set<Int> =
         actionList.mapTo(hashSetOf()) { action -> action.id }
-
-    private fun AccessibilityNodeInfo.compatUniqueId(): String =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) uniqueId.orEmpty() else ""
 
     private fun chooseScrollMethod(
         node: AccessibilityNodeInfo,
