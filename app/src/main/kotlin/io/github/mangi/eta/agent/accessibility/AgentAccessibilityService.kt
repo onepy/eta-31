@@ -15,13 +15,13 @@ import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.PersistableBundle
 import android.os.SystemClock
-import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -326,7 +326,7 @@ class AgentAccessibilityService : AccessibilityService() {
             maxScrollY = event.maxScrollY,
             fromIndex = event.fromIndex,
             toIndex = event.toIndex,
-            sourceUniqueId = source.uniqueId.orEmpty(),
+            sourceUniqueId = source.compatUniqueId(),
             sourceViewId = source.viewIdResourceName.orEmpty(),
             sourceClassName = source.className?.toString().orEmpty(),
             sourceBounds = source.bounds(),
@@ -1338,7 +1338,6 @@ class AgentAccessibilityService : AccessibilityService() {
                 AccessibilityNodeInfo.ACTION_SCROLL_FORWARD in actions ||
                     AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD in actions
                 ) -> 2
-            AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_IN_DIRECTION.id in actions -> 1
             else -> 0
         }
     }
@@ -1364,6 +1363,9 @@ class AgentAccessibilityService : AccessibilityService() {
 
     private fun AccessibilityNodeInfo.supportedActionIds(): Set<Int> =
         actionList.mapTo(hashSetOf()) { action -> action.id }
+
+    private fun AccessibilityNodeInfo.compatUniqueId(): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) uniqueId.orEmpty() else ""
 
     private fun chooseScrollMethod(
         node: AccessibilityNodeInfo,
@@ -1403,16 +1405,6 @@ class AgentAccessibilityService : AccessibilityService() {
                     },
                 )
             }
-        }
-        val inDirection = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_IN_DIRECTION.id
-        if (inDirection in actionIds) {
-            val args = Bundle().apply {
-                putInt(
-                    AccessibilityNodeInfo.ACTION_ARGUMENT_DIRECTION_INT,
-                    direction.focusDirection(),
-                )
-            }
-            return ScrollMethod(inDirection, "ACTION_SCROLL_IN_DIRECTION", args)
         }
         return null
     }
@@ -1466,7 +1458,7 @@ class AgentAccessibilityService : AccessibilityService() {
                 if (!node.isVisibleToUser) return
                 val bounds = node.bounds()
                 val key = buildString {
-                    append(node.uniqueId.orEmpty())
+                    append(node.compatUniqueId())
                     append('|')
                     append(node.className?.toString().orEmpty())
                     append('|')
@@ -1477,7 +1469,7 @@ class AgentAccessibilityService : AccessibilityService() {
                     append(node.contentDescription?.toString().orEmpty().take(80))
                 }
                 if (
-                    node.uniqueId?.isNotBlank() == true ||
+                    node.compatUniqueId().isNotBlank() ||
                     node.viewIdResourceName?.isNotBlank() == true ||
                     node.text?.isNotBlank() == true ||
                     node.contentDescription?.isNotBlank() == true
@@ -1535,13 +1527,6 @@ class AgentAccessibilityService : AccessibilityService() {
         ScrollDirection.DOWN -> AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_DOWN.id
         ScrollDirection.LEFT -> AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_LEFT.id
         ScrollDirection.RIGHT -> AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_RIGHT.id
-    }
-
-    private fun ScrollDirection.focusDirection(): Int = when (this) {
-        ScrollDirection.UP -> View.FOCUS_UP
-        ScrollDirection.DOWN -> View.FOCUS_DOWN
-        ScrollDirection.LEFT -> View.FOCUS_LEFT
-        ScrollDirection.RIGHT -> View.FOCUS_RIGHT
     }
 
     private fun ScrollDirection.opposite(): ScrollDirection = when (this) {
@@ -1704,7 +1689,7 @@ class AgentAccessibilityService : AccessibilityService() {
                 out += IndexedNode(
                     index = out.size,
                     node = node,
-                    uniqueId = node.uniqueId.orEmpty(),
+                    uniqueId = node.compatUniqueId(),
                     windowId = node.windowId,
                     text = text,
                     desc = desc,
@@ -2152,7 +2137,7 @@ class AgentAccessibilityService : AccessibilityService() {
 
         private fun AccessibilityNodeInfo.toIdentity(): AccessibilityNodeIdentity =
             AccessibilityNodeIdentity(
-                uniqueId = uniqueId.orEmpty(),
+                uniqueId = compatUniqueId(),
                 windowId = windowId,
                 packageName = packageName?.toString().orEmpty(),
                 className = className?.toString().orEmpty(),
@@ -2189,7 +2174,7 @@ class AgentAccessibilityService : AccessibilityService() {
             if (!runCatching { node.refresh() }.getOrDefault(false)) return null
             if (!node.isVisibleToUser || !node.isEnabled) return null
             val refreshedIdentity = AccessibilityNodeIdentity(
-                uniqueId = node.uniqueId.orEmpty(),
+                uniqueId = node.compatUniqueId(),
                 windowId = node.windowId,
                 packageName = node.packageName?.toString().orEmpty(),
                 className = node.className?.toString().orEmpty(),
@@ -2213,7 +2198,7 @@ class AgentAccessibilityService : AccessibilityService() {
             fun capture(node: AccessibilityNodeInfo): NodeActionTarget = NodeActionTarget(
                 node = node,
                 identity = AccessibilityNodeIdentity(
-                    uniqueId = node.uniqueId.orEmpty(),
+                    uniqueId = node.compatUniqueId(),
                     windowId = node.windowId,
                     packageName = node.packageName?.toString().orEmpty(),
                     className = node.className?.toString().orEmpty(),
@@ -2340,7 +2325,6 @@ class AgentAccessibilityService : AccessibilityService() {
             AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_RIGHT.id,
             AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD.id,
             AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD.id,
-            AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_IN_DIRECTION.id,
             AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_UP.id,
             AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_DOWN.id,
             AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_LEFT.id,
