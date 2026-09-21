@@ -5,6 +5,7 @@ import android.os.Message
 import android.os.Messenger
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import io.github.mangi.eta.core.getParcelableCompat
 import java.io.File
 
 /** 大文本通过已取消目录链接的只读文件传输；Binder 只携带描述符与长度。 */
@@ -37,7 +38,7 @@ internal object AgentWireText {
     fun hasDescriptor(bundle: Bundle, key: String): Boolean = bundle.containsKey(key + FD_SUFFIX)
 
     fun read(bundle: Bundle, key: String): String? {
-        val descriptor = bundle.getParcelable(key + FD_SUFFIX, ParcelFileDescriptor::class.java)
+        val descriptor = bundle.getParcelableCompat(key + FD_SUFFIX, ParcelFileDescriptor::class.java)
             ?: return bundle.getString(key)
         bundle.remove(key + FD_SUFFIX)
         return ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { input ->
@@ -67,7 +68,7 @@ internal object AgentWireText {
                 val copy = Bundle(original)
                 localCopy = copy
                 original.keySet().filter { it.endsWith(FD_SUFFIX) }.forEach { key ->
-                    copy.putParcelable(key, original.getParcelable(key, ParcelFileDescriptor::class.java)!!.dup())
+                    copy.putParcelable(key, original.getParcelableCompat(key, ParcelFileDescriptor::class.java)!!.dup())
                 }
                 message.data = copy
             }
@@ -81,7 +82,7 @@ internal object AgentWireText {
 
     fun close(bundle: Bundle) {
         bundle.keySet().filter { it.endsWith(FD_SUFFIX) }.forEach { key ->
-            bundle.getParcelable(key, ParcelFileDescriptor::class.java)?.close()
+            bundle.getParcelableCompat(key, ParcelFileDescriptor::class.java)?.close()
             bundle.remove(key)
         }
     }

@@ -10,6 +10,8 @@ import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import io.github.mangi.eta.agent.model.AgentConversationCodec
 import io.github.mangi.eta.agent.model.AgentModelClient
+import io.github.mangi.eta.core.getParcelableArrayListCompat
+import io.github.mangi.eta.core.getParcelableCompat
 import io.github.mangi.eta.data.model.CustomBody
 import io.github.mangi.eta.data.model.CustomHeader
 import io.github.mangi.eta.data.model.ModelReasoningCapabilities
@@ -344,8 +346,8 @@ internal object AgentRuntimeWire {
     fun incomingRunRequestFromBundle(bundle: Bundle): IncomingRunRequest {
         val images = mutableListOf<WireImage>()
         try {
-            bundle.getParcelableArrayList(KEY_IMAGES, Bundle::class.java).orEmpty().forEach { image ->
-                val descriptor = image.getParcelable(KEY_IMAGE_FD, ParcelFileDescriptor::class.java)
+            bundle.getParcelableArrayListCompat(KEY_IMAGES, Bundle::class.java).orEmpty().forEach { image ->
+                val descriptor = image.getParcelableCompat(KEY_IMAGE_FD, ParcelFileDescriptor::class.java)
                 val reference = image.getString(KEY_IMAGE_URL)
                     ?: image.getString(KEY_DATA_URL) // 兼容升级前仍内联 data URL 的入口进程。
                 require((reference == null) xor (descriptor == null)) {
@@ -377,8 +379,8 @@ internal object AgentRuntimeWire {
     fun closeImageDescriptors(bundle: Bundle?) {
         bundle?.let(AgentWireText::close)
         runCatching {
-            bundle?.getParcelableArrayList(KEY_IMAGES, Bundle::class.java).orEmpty().forEach { image ->
-                image.getParcelable(KEY_IMAGE_FD, ParcelFileDescriptor::class.java)?.close()
+            bundle?.getParcelableArrayListCompat(KEY_IMAGES, Bundle::class.java).orEmpty().forEach { image ->
+                image.getParcelableCompat(KEY_IMAGE_FD, ParcelFileDescriptor::class.java)?.close()
             }
         }
     }
@@ -466,7 +468,7 @@ internal object AgentRuntimeWire {
                 customBody = decodeCustomBody(bundle.getString(KEY_CUSTOM_BODY_JSON))
             ),
             history = if (!readText) emptyList() else AgentWireText.read(bundle, "history_json")?.let(AgentConversationCodec::decodeTranscript)
-                ?: bundle.getParcelableArrayList(KEY_HISTORY, Bundle::class.java).orEmpty().map { message ->
+                ?: bundle.getParcelableArrayListCompat(KEY_HISTORY, Bundle::class.java).orEmpty().map { message ->
                 AgentModelClient.ConversationMessage(
                     role = message.getString(KEY_ROLE).orEmpty(),
                     content = message.getString(KEY_CONTENT).orEmpty(),
@@ -580,7 +582,7 @@ internal object AgentRuntimeWire {
     }
 
     fun completedRunsFromBundle(bundle: Bundle): List<CompletedRun> =
-        bundle.getParcelableArrayList(KEY_RESULTS, Bundle::class.java)
+        bundle.getParcelableArrayListCompat(KEY_RESULTS, Bundle::class.java)
             .orEmpty()
             .map(::completedRunFromBundle)
 

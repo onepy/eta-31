@@ -6,6 +6,7 @@ import io.github.mangi.eta.core.HookInstallation
 import io.github.mangi.eta.core.HookRegistrar
 import io.github.mangi.eta.core.ModuleConfig
 import io.github.mangi.eta.core.ModuleLogger
+import io.github.mangi.eta.core.getParcelableExtraCompat
 import io.github.mangi.eta.hook.system.CircleToSearchInvoker
 
 import android.app.Activity
@@ -156,7 +157,7 @@ internal object ColorDirectHooks {
         if (startInfoClass != null && Parcelable::class.java.isAssignableFrom(startInfoClass)) {
             @Suppress("UNCHECKED_CAST")
             val typedStartInfoClass = startInfoClass as Class<Parcelable>
-            intent.getParcelableExtra(
+            intent.getParcelableExtraCompat(
                 ModuleConfig.COLOR_DIRECT_EXTRA_START_INFO,
                 typedStartInfoClass
             )?.let { return it }
