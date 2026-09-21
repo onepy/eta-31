@@ -1,6 +1,5 @@
 package io.github.mangi.eta.ui.components
 
-import android.os.LocaleList
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.runtime.Composable
@@ -46,7 +45,12 @@ internal fun LanguagePreference(iconTint: Color = MiuixTheme.colorScheme.onBackg
     val labels = listOf(stringResource(R.string.settings_language_system)) +
         locales.map { it.getDisplayName(it) }
     val selectedIndex = selectedLocale?.let { selected ->
-        locales.indexOfFirst { LocaleList.matchesLanguageAndScript(it, selected) } + 1
+        locales.indexOfFirst { candidate ->
+            candidate.language == selected.language &&
+                (candidate.script.isBlank() ||
+                    selected.script.isBlank() ||
+                    candidate.script == selected.script)
+        } + 1
     } ?: 0
 
     EtaDropdownPreference(
