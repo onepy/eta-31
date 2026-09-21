@@ -34,7 +34,7 @@ class LanguageSettingsRepository(context: Context) {
             ?.get(0)
             ?.takeIf { selected ->
                 supportedLocales.any { supported ->
-                    LocaleList.matchesLanguageAndScript(supported, selected)
+                    supported.matchesLanguageAndScriptCompat(selected)
                 }
             }
     }
@@ -64,6 +64,13 @@ class LanguageSettingsRepository(context: Context) {
 
     private fun LocaleList.toLocaleList(): List<Locale> =
         List(size()) { index -> get(index) }
+
+    private fun Locale.matchesLanguageAndScriptCompat(other: Locale): Boolean {
+        if (language != other.language) return false
+        val thisScript = script
+        val otherScript = other.script
+        return thisScript.isBlank() || otherScript.isBlank() || thisScript == otherScript
+    }
 
     private companion object {
         val FALLBACK_SUPPORTED_LOCALES = listOf(
