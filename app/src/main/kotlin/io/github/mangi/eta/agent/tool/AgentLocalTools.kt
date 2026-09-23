@@ -40,6 +40,7 @@ import io.github.mangi.eta.agent.terminal.SharedFolderMounts
 import io.github.mangi.eta.config.Prefs
 import io.github.mangi.eta.core.AgentLogger
 import io.github.mangi.eta.core.HookSupport
+import io.github.mangi.eta.core.queryIntentActivitiesCompat
 import io.github.mangi.eta.data.repository.AgentMemoryException
 import io.github.mangi.eta.data.repository.AgentMemoryMutation
 import io.github.mangi.eta.data.repository.AgentMemoryRepository
@@ -759,10 +760,7 @@ internal class AgentLocalTools(
         val context = requireContext()
         val packageManager = context.packageManager
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-        val resolveInfos = packageManager.queryIntentActivities(
-            intent,
-            PackageManager.ResolveInfoFlags.of(0L)
-        )
+        val resolveInfos = packageManager.queryIntentActivitiesCompat(intent, 0)
         val apps = linkedMapOf<String, AppInfo>()
         resolveInfos.forEach { resolveInfo ->
             val activityInfo = resolveInfo.activityInfo ?: return@forEach

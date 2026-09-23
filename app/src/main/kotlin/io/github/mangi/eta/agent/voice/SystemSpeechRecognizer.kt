@@ -9,6 +9,7 @@ import android.content.pm.ResolveInfo
 import android.provider.Settings
 import android.speech.RecognitionService
 import android.speech.SpeechRecognizer
+import io.github.mangi.eta.core.queryIntentServicesCompat
 
 internal object SystemSpeechRecognizer {
     internal data class Source(val component: ComponentName?) {
@@ -43,9 +44,9 @@ internal object SystemSpeechRecognizer {
             context.contentResolver,
             VOICE_RECOGNITION_SERVICE,
         )?.let(ComponentName::unflattenFromString)
-        val services = context.packageManager.queryIntentServices(
+        val services = context.packageManager.queryIntentServicesCompat(
             Intent(RecognitionService.SERVICE_INTERFACE),
-            PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_ALL.toLong()),
+            PackageManager.MATCH_ALL,
         )
         return selectExternalService(services, context.packageName, configured)
     }
