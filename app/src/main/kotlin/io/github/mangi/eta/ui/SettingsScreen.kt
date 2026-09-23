@@ -590,6 +590,18 @@ private fun SettingsPageContent(
                 EtaPreferenceGroupTitle(stringResource(R.string.ui_permissions_560165))
                 EtaPreferenceGroup {
                     EtaArrowPreference(
+                        title = stringResource(R.string.ui_permission_health_3048bb),
+                        startAction = {
+                            EtaPreferenceIcon(
+                                icon = Icons.Rounded.Security,
+                                tint = EtaPreferenceColors.Blue,
+                            )
+                        },
+                        onClick = { onNavigate(AppRoute.Permissions) },
+                    )
+
+                    EtaPreferenceDivider()
+                    EtaArrowPreference(
                         title = stringResource(R.string.ui_floating_window_permissions_076b77),
                         startAction = {
                             EtaPreferenceIcon(
